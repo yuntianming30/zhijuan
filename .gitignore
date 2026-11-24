@@ -1,8 +1,8 @@
 # Local course materials and generated data
 local-samples/*
 !local-samples/README.md
-data/
-local-data/
+/data/
+/local-data/
 *.sqlite
 *.sqlite3
 
