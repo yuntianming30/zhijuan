@@ -6,12 +6,16 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+from dotenv import load_dotenv
+
 
 PROJECT_ROOT = Path(__file__).parent.parent
 CONFIG_PATH = PROJECT_ROOT / "local-samples" / "config" / "model.json"
 DEFAULT_BASE_URL = "https://api.deepseek.com"
 DEFAULT_TEXT_MODEL = "deepseek-v4-pro"
 DEFAULT_VISION_MODEL = "deepseek-flash"
+
+load_dotenv(PROJECT_ROOT / ".env", override=False)
 
 
 def _saved() -> dict[str, str]:

@@ -9,7 +9,7 @@
 
 ## 开发环境
 
-1. 安装 Node.js 20+ 与 Python 3.11+。
+1. 安装 Node.js `20.19+`（或 `22.12+`）与 Python 3.11+。
 2. 安装依赖：
 
 ```powershell
@@ -17,10 +17,11 @@ npm install
 py -m pip install -r backend/requirements.txt
 ```
 
-3. 启动后端：
+Linux/macOS 将 `py -m pip` 替换为 `python3 -m pip`。
+
+3. 启动后端。启动脚本会自动检测 Python：
 
 ```powershell
-$env:DEEPSEEK_API_KEY = "你的 Key"
 npm run dev:api
 ```
 
@@ -40,6 +41,8 @@ npm run qa:math
 npm audit --omit=dev
 py -m unittest validation/test_validate_contracts.py validation/test_validate_exam_profile.py -v
 ```
+
+浏览器测试需要本机安装 Chrome。端到端 AI 测试还需要模型 Key 和 `local-samples/` 中的本地测试资料。
 
 真实模型测试需要自行配置 Key。不要提交 Key、用户课件、生成的课程数据或 `local-samples/` 内容。
 

@@ -61,6 +61,7 @@ GitHub：[yuntianming30/zhijuan](https://github.com/yuntianming30/zhijuan)
 - [模拟考试模块说明](docs/08-exam-module.md)
 - [线性代数完整试点报告](docs/09-linear-algebra-pilot.md)
 - [开源发布说明](docs/10-open-source-release.md)
+- [安装与开源可用性检查](docs/11-installation-readiness.md)
 - [数据契约验证器](validation/README.md)
 
 ## 开源
@@ -76,7 +77,11 @@ GitHub：[yuntianming30/zhijuan](https://github.com/yuntianming30/zhijuan)
 
 ## 本地运行
 
-环境要求：Node.js 20+、Python 3.11+。
+环境要求：
+
+- Node.js `20.19+`，或 `22.12+`
+- Python `3.11+`
+- `.env` 文件可选，模型配置也可以在页面内完成
 
 ```powershell
 git clone https://github.com/yuntianming30/zhijuan.git
@@ -88,6 +93,8 @@ py -m pip install -r backend/requirements.txt
 npm install
 npm run dev:api
 ```
+
+Windows 使用 `py -m pip`；Linux/macOS 通常使用 `python3 -m pip`。后端启动脚本会自动寻找可用的 Python。
 
 另开一个终端：
 
@@ -104,6 +111,14 @@ $env:DEEPSEEK_API_KEY = "你的 Key"
 ```
 
 环境变量优先于页面内的本地配置。不要把 Key 写入 `.env.example`、README 或 Git。
+如需使用 `.env`，可参考 `.env.example` 中的变量名，该文件默认被 Git 忽略。
+
+如果 `8010` 已被占用，前后端两个终端都设置相同端口：
+
+```powershell
+$env:API_PORT = "8020"
+npm run dev:api
+```
 
 ## Docker 自托管
 
