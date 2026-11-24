@@ -1,8 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -22,6 +18,7 @@ import {
   Send,
   ShieldCheck,
   Sparkles,
+  Star,
   Timer,
   Trophy,
   Upload,
@@ -36,6 +33,17 @@ import type {
   ExamQuestion,
   ExamSection,
 } from "../types";
+import MarkdownContent from "./MarkdownContent";
+import {
+  archivePaper,
+  loadExamHistory,
+  loadFavorites,
+  loadPaperArchive,
+  loadWrongBook,
+  saveExamHistory,
+  saveWrongBook,
+  toggleFavorite,
+} from "../data/localStore";
 
 interface ExamWorkspaceProps {
   graph: DemoKnowledgeGraph;
@@ -43,8 +51,6 @@ interface ExamWorkspaceProps {
 
 type ExamPhase = "blueprint" | "preview" | "exam" | "result";
 
-const HISTORY_KEY = "stem-review-workbench:exam-history";
-const WRONG_BOOK_KEY = "stem-review-workbench:wrong-book";
 const PAPER_STORAGE_KEY = "stem-review-workbench:last-paper";
 
 const typeLabels: Record<ExamQuestion["questionType"], string> = {
@@ -97,26 +103,6 @@ function defaultBlueprint(course: string): ExamBlueprint {
   };
 }
 
-function loadHistory(): ExamAttempt[] {
-  try {
-    const raw = window.localStorage.getItem(HISTORY_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed.slice(0, 10) : [];
-  } catch {
-    return [];
-  }
-}
-
-function loadWrongBook(): ExamAttempt["wrongQuestionIds"] {
-  try {
-    const raw = window.localStorage.getItem(WRONG_BOOK_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
 function loadStoredPaper(course: string): ExamPaper | null {
   try {
     const raw = window.localStorage.getItem(PAPER_STORAGE_KEY);
@@ -133,7 +119,15 @@ function loadStoredPaper(course: string): ExamPaper | null {
   } catch {
     // Ignore malformed local paper state.
   }
-  return null;
+  return (
+    Object.values(loadPaperArchive())
+      .filter((paper) => paper.course === course)
+      .sort(
+        (first, second) =>
+          new Date(second.generatedAt).getTime() -
+          new Date(first.generatedAt).getTime(),
+      )[0] ?? null
+  );
 }
 
 function choiceKey(option: string, index: number) {
@@ -164,22 +158,6 @@ function answerMatches(question: ExamQuestion, answer: string) {
     return normalizeTextAnswer(answer) === normalizeTextAnswer(question.answer);
   }
   return normalizeChoice(answer) === normalizeChoice(question.answer);
-}
-
-function MarkdownContent({ children }: { children: string }) {
-  const normalized = children
-    .replace(/\\\[([\s\S]*?)\\\]/g, (_match, expression) => `$$${expression}$$`)
-    .replace(/\\\(([\s\S]*?)\\\)/g, (_match, expression) => `$${expression}$`);
-  return (
-    <div className="markdown-content">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeKatex]}
-      >
-        {normalized}
-      </ReactMarkdown>
-    </div>
-  );
 }
 
 function formatTime(seconds: number) {
@@ -214,8 +192,16 @@ export default function ExamWorkspace({ graph }: ExamWorkspaceProps) {
   const [rubricChecks, setRubricChecks] = useState<Record<string, number[]>>(
     {},
   );
-  const [history, setHistory] = useState<ExamAttempt[]>(loadHistory);
+  const [history, setHistory] = useState<ExamAttempt[]>(loadExamHistory);
   const [wrongBook, setWrongBook] = useState<string[]>(loadWrongBook);
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(
+    () =>
+      new Set(
+        loadFavorites()
+          .filter((favorite) => favorite.course === graph.course)
+          .map((favorite) => favorite.question.id),
+      ),
+  );
   const startedAtRef = useRef<number | null>(null);
   const profileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -232,6 +218,15 @@ export default function ExamWorkspace({ graph }: ExamWorkspaceProps) {
     setCurrentQuestionIndex(0);
     setResult(null);
     setRubricChecks({});
+    setHistory(loadExamHistory());
+    setWrongBook(loadWrongBook());
+    setFavoriteIds(
+      new Set(
+        loadFavorites()
+          .filter((favorite) => favorite.course === graph.course)
+          .map((favorite) => favorite.question.id),
+      ),
+    );
   }, [graph.course]);
 
   useEffect(() => {
@@ -460,7 +455,7 @@ export default function ExamWorkspace({ graph }: ExamWorkspaceProps) {
   }
 
   async function generateExam() {
-    if (!blueprintValid || isGenerating) return;
+    if (!blueprintValid || isGenerating || graph.nodes.length === 0) return;
     setIsGenerating(true);
     setError(null);
     try {
@@ -486,6 +481,7 @@ export default function ExamWorkspace({ graph }: ExamWorkspaceProps) {
         throw new Error(payload?.detail ?? `生成失败（HTTP ${response.status}）`);
       }
       setPaper(payload.paper);
+      archivePaper(payload.paper);
       window.localStorage.setItem(
         PAPER_STORAGE_KEY,
         JSON.stringify(payload.paper),
@@ -575,8 +571,8 @@ export default function ExamWorkspace({ graph }: ExamWorkspaceProps) {
     setWrongBook(nextWrongBook);
     setRubricChecks({});
     setPhase("result");
-    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(nextHistory));
-    window.localStorage.setItem(WRONG_BOOK_KEY, JSON.stringify(nextWrongBook));
+    saveExamHistory(nextHistory);
+    saveWrongBook(nextWrongBook);
   }
 
   function toggleRubric(question: ExamQuestion, rubricIndex: number) {
@@ -623,8 +619,19 @@ export default function ExamWorkspace({ graph }: ExamWorkspaceProps) {
     const nextWrongBook = Array.from(new Set([...wrongBook, ...wrongIds]));
     setHistory(nextHistory);
     setWrongBook(nextWrongBook);
-    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(nextHistory));
-    window.localStorage.setItem(WRONG_BOOK_KEY, JSON.stringify(nextWrongBook));
+    saveExamHistory(nextHistory);
+    saveWrongBook(nextWrongBook);
+  }
+
+  function toggleQuestionFavorite(question: ExamQuestion) {
+    if (!paper) return;
+    const added = toggleFavorite(graph.course, paper.title, question);
+    setFavoriteIds((current) => {
+      const next = new Set(current);
+      if (added) next.add(question.id);
+      else next.delete(question.id);
+      return next;
+    });
   }
 
   function resetExamFlow() {
@@ -669,8 +676,14 @@ export default function ExamWorkspace({ graph }: ExamWorkspaceProps) {
           <div className="exam-readiness">
             <ShieldCheck size={19} />
             <div>
-              <strong>由知识图谱出题</strong>
-              <span>{graph.nodes.length} 个可引用知识点</span>
+                <strong>
+                  {graph.nodes.length ? "由知识图谱出题" : "请先添加课程资料"}
+                </strong>
+                <span>
+                  {graph.nodes.length
+                    ? `${graph.nodes.length} 个可引用知识点`
+                    : "生成知识导图后才能创建试卷"}
+                </span>
             </div>
           </div>
         </section>
@@ -905,7 +918,9 @@ export default function ExamWorkspace({ graph }: ExamWorkspaceProps) {
               <button
                 type="button"
                 className="button primary-button"
-                disabled={!blueprintValid || isGenerating}
+                disabled={
+                  !blueprintValid || isGenerating || graph.nodes.length === 0
+                }
                 onClick={() => void generateExam()}
               >
                 {isGenerating ? (
@@ -1170,6 +1185,23 @@ export default function ExamWorkspace({ graph }: ExamWorkspaceProps) {
                         <div className="question-meta">
                           <span>{typeLabels[question.questionType]}</span>
                           <strong>{question.points} 分</strong>
+                          <button
+                            type="button"
+                            className={`question-favorite ${
+                              favoriteIds.has(question.id) ? "is-favorite" : ""
+                            }`}
+                            onClick={() => toggleQuestionFavorite(question)}
+                          >
+                            <Star
+                              size={14}
+                              fill={
+                                favoriteIds.has(question.id)
+                                  ? "currentColor"
+                                  : "none"
+                              }
+                            />
+                            {favoriteIds.has(question.id) ? "已收藏" : "收藏"}
+                          </button>
                         </div>
                         <MarkdownContent>{question.stemMarkdown}</MarkdownContent>
                         {question.options.length ? (
@@ -1455,6 +1487,23 @@ export default function ExamWorkspace({ graph }: ExamWorkspaceProps) {
                           : "错误"
                         : `${Math.round(subjectiveScore)} / ${question.points} 分`}
                     </span>
+                    <button
+                      type="button"
+                      className={`question-favorite ${
+                        favoriteIds.has(question.id) ? "is-favorite" : ""
+                      }`}
+                      onClick={() => toggleQuestionFavorite(question)}
+                    >
+                      <Star
+                        size={14}
+                        fill={
+                          favoriteIds.has(question.id)
+                            ? "currentColor"
+                            : "none"
+                        }
+                      />
+                      {favoriteIds.has(question.id) ? "已收藏" : "收藏"}
+                    </button>
                   </div>
                   <MarkdownContent>{question.stemMarkdown}</MarkdownContent>
                   <div className="answer-comparison">

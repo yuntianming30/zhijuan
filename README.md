@@ -17,8 +17,11 @@ GitHub：[yuntianming30/zhijuan](https://github.com/yuntianming30/zhijuan)
 - DeepSeek V4：文本生成、公式页面视觉提取和真题结构提取已完成真实验证
 - 本地恢复：最近一次生成的导图保存在浏览器本地
 - 课程切换：面向对象程序设计与线性代数分别保存知识图谱和考试状态
+- 自建课程：可新建任意理工科课程并独立保存资料、导图和考试记录
+- 课程工作区：课程资料、历史记录、错题本和收藏页面均可直接使用
 - 真题命题画像：上传真题图片，提取题区、题量和分值，支持不同小问分值
 - 页面内模型配置：测试并保存用户自己的 DeepSeek Key
+- 新手配置说明：页面内提供 DeepSeek 注册、充值、API Key 和模型选择步骤
 - 模拟考试：考试蓝图、DeepSeek 出卷、预览、计时作答、客观题判分、主观题评分点自评
 - 公式渲染：支持 `$...$`、`\(...\)` 和常见的矩阵、行列式、上下标 LaTeX
 - 考试记录：最近考试、分数和错题数量保存在浏览器本地
@@ -62,6 +65,7 @@ GitHub：[yuntianming30/zhijuan](https://github.com/yuntianming30/zhijuan)
 - [线性代数完整试点报告](docs/09-linear-algebra-pilot.md)
 - [开源发布说明](docs/10-open-source-release.md)
 - [安装与开源可用性检查](docs/11-installation-readiness.md)
+- [双击启动、动态课程与新手配置](docs/12-easy-launch-and-course-management.md)
 - [数据契约验证器](validation/README.md)
 
 ## 开源
@@ -76,6 +80,25 @@ GitHub：[yuntianming30/zhijuan](https://github.com/yuntianming30/zhijuan)
 真实课件和真题不得提交到公开仓库。请按 [local-samples/README.md](local-samples/README.md) 的说明放置脱敏资料。
 
 ## 本地运行
+
+### Windows 双击启动（推荐）
+
+第一次使用前只需要安装：
+
+- [Node.js](https://nodejs.org/) 22 LTS
+- [Python](https://www.python.org/downloads/) 3.11 或更高版本，安装时勾选 `Add Python to PATH`
+
+然后双击仓库根目录的 `start-zhijuan.vbs`。启动器会自动完成：
+
+1. 创建独立 Python 环境并安装后端依赖
+2. 安装网页依赖并构建生产版本
+3. 启动本地服务并自动打开浏览器
+
+首次启动需要等待依赖下载，时间取决于网络。若没有自动打开，请双击 `start-zhijuan.cmd`，该版本会保留详细错误信息。
+
+> DeepSeek API Key 不需要提前写入文件。打开网页后进入“设置”，页面内有注册、充值、创建 Key 和连接测试说明。
+
+### 开发者命令启动
 
 环境要求：
 
@@ -151,4 +174,5 @@ npm run qa:math
 npm run qa:linear-exam
 npm run qa:linear-algebra
 npm run qa:settings
+npm run qa:navigation
 ```

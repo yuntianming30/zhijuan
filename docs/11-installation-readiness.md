@@ -33,6 +33,12 @@ $env:API_PORT = "8020"
 npm run dev:api
 ```
 
+### Windows 双击启动
+
+根目录新增 `start-zhijuan.vbs`、`start-zhijuan.cmd` 和
+`scripts/start-zhijuan.ps1`。启动器会检测 Node.js/Python、创建
+`.venv`、按哈希安装依赖、构建前端、选择可用端口并启动本地服务。
+
 ## 已验证
 
 - `npm ci --dry-run`
@@ -43,6 +49,9 @@ npm run dev:api
 - 桌面和手机浏览器回归
 - Python 契约测试
 - `npm audit --omit=dev` 为 0
+- Windows 启动器实际安装、构建和启动
+- 六个主导航入口的桌面与手机交互
+- 新建课程及刷新后持久化
 
 ## 当前无法自动验证
 
@@ -52,10 +61,10 @@ npm run dev:api
 
 以下不是安装错误，但属于公开发布后的功能缺口：
 
-- 没有“新建任意课程”的表单，上传资料目前主要用于当前课程
+- 暂不支持 DOCX 上传，当前支持 PDF、PPTX、图片、Markdown 和 TXT
 - GitHub 公开仓库没有附带真实课件，线性代数样例只在本地测试环境可用
 - 大学物理样例尚未接入
-- 错题本、收藏和历史导航仍是禁用状态
+- 课程资料页记录已处理文件名，但重新生成时仍需再次选择文件
 - 进行中的考试不能跨页面刷新恢复
 - PPTX 中的 OLE 公式尚未实现跨平台自动页面渲染
 

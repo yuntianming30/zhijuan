@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import {
+  BookOpen,
   CheckCircle2,
+  ExternalLink,
   KeyRound,
   LoaderCircle,
   LockKeyhole,
   Save,
   ShieldCheck,
   Trash2,
+  Wallet,
   X,
 } from "lucide-react";
 
@@ -40,6 +43,7 @@ export default function SettingsWorkspace({
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
+  const [discoveredModels, setDiscoveredModels] = useState<string[]>([]);
   const [notice, setNotice] = useState<{
     tone: "success" | "error";
     text: string;
@@ -126,6 +130,7 @@ export default function SettingsWorkspace({
         throw new Error(payload?.detail ?? "连接测试失败");
       }
       const modelCount = payload.models?.length ?? 0;
+      setDiscoveredModels(payload.models ?? []);
       setNotice({
         tone: "success",
         text:
@@ -186,6 +191,86 @@ export default function SettingsWorkspace({
             <strong>本地保存</strong>
             <span>配置目录已被 Git 忽略</span>
           </div>
+        </div>
+      </section>
+
+      <section className="model-onboarding">
+        <div className="model-onboarding-heading">
+          <div>
+            <span className="panel-kicker">FIRST TIME SETUP</span>
+            <h2>第一次使用 DeepSeek？</h2>
+            <p>
+              知卷使用“自带 API Key”模式，不代收费用。API
+              按实际调用量计费，价格、赠送额度和充值入口以 DeepSeek
+              官方平台为准。
+            </p>
+          </div>
+          <a
+            href="https://platform.deepseek.com/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            打开 DeepSeek 开放平台
+            <ExternalLink size={14} />
+          </a>
+        </div>
+        <div className="model-onboarding-steps">
+          <article>
+            <span>
+              <BookOpen size={17} />
+              01
+            </span>
+            <strong>注册并登录</strong>
+            <p>
+              在官方开放平台登录账号。知卷不是 DeepSeek
+              官方产品，不需要在这里注册知卷账号。
+            </p>
+          </article>
+          <article>
+            <span>
+              <Wallet size={17} />
+              02
+            </span>
+            <strong>按需充值</strong>
+            <p>
+              进入平台的充值或账单页面；第一次可先小额充值，跑通一篇资料后再按用量增加。是否赠送额度、支持哪些支付方式以官网为准。
+            </p>
+          </article>
+          <article>
+            <span>
+              <KeyRound size={17} />
+              03
+            </span>
+            <strong>创建 API Key</strong>
+            <p>
+              打开 API Keys 页面创建一个 Key，并立即复制。完整 Key
+              通常只显示一次，不要发给别人或提交到 GitHub。
+            </p>
+          </article>
+          <article>
+            <span>
+              <ShieldCheck size={17} />
+              04
+            </span>
+            <strong>粘贴并测试</strong>
+            <p>
+              把 Key 填到下方输入框，先点“测试连接”。成功后保存配置，再回到课程资料开始使用。
+            </p>
+          </article>
+        </div>
+        <div className="model-onboarding-note">
+          <strong>不知道模型名称怎么填？</strong>
+          <span>
+            保持默认值直接测试；如果提示模型不可用，把测试结果中列出的模型名称填入对应输入框。
+          </span>
+          <a
+            href="https://api-docs.deepseek.com/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            查看 API 文档
+            <ExternalLink size={13} />
+          </a>
         </div>
       </section>
 
@@ -292,6 +377,29 @@ export default function SettingsWorkspace({
             <div className="settings-hint">
               文本模型用于知识图谱、出题和复盘；视觉模型用于公式页与真题图片。
             </div>
+            {discoveredModels.length ? (
+              <div className="model-discovery">
+                <span>本次测试发现的模型</span>
+                <div>
+                  {discoveredModels.map((model) => (
+                    <button
+                      key={model}
+                      type="button"
+                      className={settings.textModel === model ? "is-current" : ""}
+                      onClick={() =>
+                        setSettings((current) => ({
+                          ...current,
+                          textModel: model,
+                        }))
+                      }
+                    >
+                      {model}
+                    </button>
+                  ))}
+                </div>
+                <small>点击模型名称可以设为文本模型。</small>
+              </div>
+            ) : null}
             <div className="settings-actions">
               <button
                 type="button"

@@ -32,7 +32,8 @@
     "qa:math": "node scripts/math-render-check.mjs",
     "qa:linear-algebra": "node scripts/linear-algebra-check.mjs",
     "qa:linear-exam": "node scripts/generate-linear-exam.mjs",
-    "qa:settings": "node scripts/settings-check.mjs"
+    "qa:settings": "node scripts/settings-check.mjs",
+    "qa:navigation": "node scripts/navigation-course-check.mjs"
   },
   "dependencies": {
     "@markmap/parse": "^1.1.1",

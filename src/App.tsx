@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   ArrowUpRight,
   BookOpen,
+  BookPlus,
   BrainCircuit,
   CheckCircle2,
   ChevronRight,
@@ -24,7 +25,28 @@ import {
 import MindMapView from "./components/MindMapView";
 import ExamWorkspace from "./components/ExamWorkspace";
 import SettingsWorkspace from "./components/SettingsWorkspace";
+import CourseDialog from "./components/CourseDialog";
+import CourseMaterialsWorkspace from "./components/CourseMaterialsWorkspace";
+import FavoritesWorkspace from "./components/FavoritesWorkspace";
+import HistoryWorkspace from "./components/HistoryWorkspace";
+import WrongBookWorkspace from "./components/WrongBookWorkspace";
 import { demoGraph } from "./data/demoGraph";
+import {
+  addMaterials,
+  createCourse,
+  DATA_CHANGED_EVENT,
+  loadActiveCourseId,
+  loadCourses,
+  loadMaterials,
+  recordStudyEvent,
+  removeMaterial,
+  saveActiveCourseId,
+} from "./data/localStore";
+import type {
+  CourseDefinition,
+  CourseMaterial,
+  NewCourseInput,
+} from "./data/localStore";
 import type {
   DemoKnowledgeGraph,
   Evidence,
@@ -46,6 +68,18 @@ const navItems: NavItem[] = [
   { id: "wrong", label: "错题本", icon: BookOpen },
   { id: "favorites", label: "收藏", icon: Star },
 ];
+
+type AppView = NavItem["id"] | "settings";
+
+const viewLabels: Record<AppView, string> = {
+  materials: "课程资料",
+  review: "复习导图",
+  exam: "模拟考试",
+  history: "历史记录",
+  wrong: "错题本",
+  favorites: "收藏",
+  settings: "设置",
+};
 
 const depthOptions: Array<{
   value: ReviewDepth;
@@ -70,43 +104,11 @@ const nodeTypeClass: Record<KnowledgeNode["type"], string> = {
   易错点: "type-pitfall",
 };
 
-type CourseKey = "oop" | "linear-algebra" | "physics";
-
-const courseChoices: Array<{
-  key: CourseKey;
-  name: string;
-  language: string;
-  framework: string;
-  color: "green" | "amber" | "blue";
-}> = [
-  {
-    key: "oop",
-    name: "面向对象程序设计",
-    language: "C++",
-    framework: "MFC",
-    color: "green",
-  },
-  {
-    key: "physics",
-    name: "大学物理",
-    language: "",
-    framework: "",
-    color: "amber",
-  },
-  {
-    key: "linear-algebra",
-    name: "线性代数",
-    language: "",
-    framework: "",
-    color: "blue",
-  },
-];
-
-function graphStorageKey(courseKey: CourseKey) {
+function graphStorageKey(courseKey: string) {
   return `stem-review-workbench:last-graph:${courseKey}`;
 }
 
-function loadStoredGraph(courseKey: CourseKey): DemoKnowledgeGraph | null {
+function loadStoredGraph(courseKey: string): DemoKnowledgeGraph | null {
   try {
     const raw =
       window.localStorage.getItem(graphStorageKey(courseKey)) ??
@@ -129,14 +131,48 @@ function loadStoredGraph(courseKey: CourseKey): DemoKnowledgeGraph | null {
   return courseKey === "oop" ? demoGraph : null;
 }
 
+function emptyGraph(course: CourseDefinition): DemoKnowledgeGraph {
+  return {
+    course: course.name,
+    subtitle: course.description || "等待添加课程资料",
+    language: course.language || "不适用",
+    framework: course.framework || "无",
+    model: "DeepSeek V4",
+    sourceCount: 0,
+    summary:
+      course.description ||
+      "添加课件、复习资料或历年真题后，知卷会在这里生成课程知识导图和复习重点。",
+    branches: [],
+    nodes: [],
+    warnings: [],
+  };
+}
+
 function App() {
-  const [view, setView] = useState<"review" | "exam" | "settings">("review");
-  const [courseKey, setCourseKey] = useState<CourseKey>("oop");
+  const [courses, setCourses] = useState<CourseDefinition[]>(loadCourses);
+  const [courseKey, setCourseKey] = useState(() => {
+    const activeId = loadActiveCourseId();
+    const available = loadCourses();
+    return available.some((course) => course.id === activeId)
+      ? (activeId as string)
+      : "oop";
+  });
+  const [view, setView] = useState<AppView>("review");
+  const currentCourse =
+    courses.find((course) => course.id === courseKey) ?? courses[0];
   const [depth, setDepth] = useState<ReviewDepth>("focused");
   const [selectedId, setSelectedId] = useState("constructor");
   const [graph, setGraph] = useState<DemoKnowledgeGraph>(
-    () => loadStoredGraph("oop") ?? demoGraph,
+    () =>
+      loadStoredGraph(courseKey) ??
+      emptyGraph(
+        courses.find((course) => course.id === courseKey) ?? courses[0],
+      ),
   );
+  const [materials, setMaterials] = useState<CourseMaterial[]>(() =>
+    loadMaterials(courseKey),
+  );
+  const [showCourseDialog, setShowCourseDialog] = useState(false);
   const [apiState, setApiState] = useState<
     "checking" | "connected" | "local"
   >("checking");
@@ -183,6 +219,16 @@ function App() {
   }, []);
 
   useEffect(() => {
+    const refreshLocalData = () => {
+      setCourses(loadCourses());
+      setMaterials(loadMaterials(courseKey));
+    };
+    window.addEventListener(DATA_CHANGED_EVENT, refreshLocalData);
+    return () =>
+      window.removeEventListener(DATA_CHANGED_EVENT, refreshLocalData);
+  }, [courseKey]);
+
+  useEffect(() => {
     if (!activeEvidence) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setActiveEvidence(null);
@@ -218,23 +264,33 @@ function App() {
 
   useEffect(() => {
     if (!visibleNodes.some((node) => node.id === selectedId)) {
-      setSelectedId(visibleNodes[0]?.id ?? graph.nodes[0].id);
+      setSelectedId(visibleNodes[0]?.id ?? graph.nodes[0]?.id ?? "");
     }
   }, [graph.nodes, selectedId, visibleNodes]);
 
   const selectedNode =
-    graph.nodes.find((node) => node.id === selectedId) ?? graph.nodes[0];
+    graph.nodes.find((node) => node.id === selectedId) ??
+    graph.nodes[0] ?? {
+      id: "empty",
+      title: "等待添加课程资料",
+      summary: "",
+      type: "概念" as const,
+      importance: "normal" as const,
+      evidence: [],
+      branch: "",
+      reviewHint: "",
+    };
 
   async function generateKnowledge(files?: File[]) {
-    if (isGenerating) return;
+    if (isGenerating) return false;
     setIsGenerating(true);
     setNotice(null);
     const form = new FormData();
-    form.append("course_name", graph.course);
-    form.append("language", graph.language);
-    form.append("framework", graph.framework);
+    form.append("course_name", currentCourse.name);
+    form.append("language", currentCourse.language || "不适用");
+    form.append("framework", currentCourse.framework || "无");
     form.append("depth", depth);
-    form.append("sample_course", courseKey);
+    form.append("sample_course", currentCourse.sampleCourse ?? "");
     form.append(
       "focus",
       depth === "quick"
@@ -275,6 +331,17 @@ function App() {
         tone: "success",
         text: `已根据 ${payload.graph.sourceCount} 份资料重新整理知识导图。`,
       });
+      if (files?.length) {
+        addMaterials(courseKey, files);
+      }
+      recordStudyEvent({
+        courseId: courseKey,
+        course: currentCourse.name,
+        kind: "graph",
+        title: "生成复习导图",
+        detail: `根据 ${payload.graph.sourceCount} 份资料生成 ${payload.graph.nodes.length} 个知识节点`,
+      });
+      return true;
     } catch (error) {
       setNotice({
         tone: "error",
@@ -283,6 +350,7 @@ function App() {
             ? error.message
             : "生成失败，请检查本地 API 和模型配置。",
       });
+      return false;
     } finally {
       setIsGenerating(false);
     }
@@ -294,16 +362,10 @@ function App() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
-  async function switchCourse(targetKey: CourseKey) {
+  async function switchCourse(targetKey: string) {
     if (targetKey === courseKey || isGenerating) return;
-    const target = courseChoices.find((course) => course.key === targetKey);
-    if (!target || !isCourseAvailable(targetKey)) {
-      setNotice({
-        tone: "info",
-        text: `${target?.name ?? "该课程"}的本地样例将在下一轮验证中接入。`,
-      });
-      return;
-    }
+    const target = courses.find((course) => course.id === targetKey);
+    if (!target) return;
 
     const stored = loadStoredGraph(targetKey);
     if (stored) {
@@ -318,9 +380,25 @@ function App() {
           normalizedStored.nodes[0].id,
       );
       setView("review");
+      saveActiveCourseId(targetKey);
+      setMaterials(loadMaterials(targetKey));
       setNotice({
         tone: "success",
         text: `已切换到${stored.course}。`,
+      });
+      return;
+    }
+
+    if (!target.sampleCourse || !isCourseAvailable(targetKey)) {
+      setCourseKey(targetKey);
+      setGraph(emptyGraph(target));
+      setSelectedId("");
+      setMaterials(loadMaterials(targetKey));
+      saveActiveCourseId(targetKey);
+      setView("materials");
+      setNotice({
+        tone: "info",
+        text: `已进入${target.name}，请先添加这门课的资料。`,
       });
       return;
     }
@@ -336,7 +414,7 @@ function App() {
     form.append("framework", target.framework || "无");
     form.append("depth", "focused");
     form.append("focus", "优先核心概念、常见题型和易错点");
-    form.append("sample_course", targetKey);
+    form.append("sample_course", target.sampleCourse);
     try {
       const response = await fetch("/api/generate", {
         method: "POST",
@@ -355,6 +433,8 @@ function App() {
           payload.graph.nodes[0].id,
       );
       setView("review");
+      saveActiveCourseId(targetKey);
+      setMaterials(loadMaterials(targetKey));
       window.localStorage.setItem(
         graphStorageKey(targetKey),
         JSON.stringify(payload.graph),
@@ -362,6 +442,13 @@ function App() {
       setNotice({
         tone: "success",
         text: `${target.name}知识图谱已生成，可以开始复习或创建模拟考试。`,
+      });
+      recordStudyEvent({
+        courseId: targetKey,
+        course: target.name,
+        kind: "graph",
+        title: "生成内置样例导图",
+        detail: `${payload.graph.nodes.length} 个知识节点`,
       });
     } catch (error) {
       setNotice({
@@ -376,7 +463,7 @@ function App() {
     }
   }
 
-  function isCourseAvailable(targetKey: CourseKey) {
+  function isCourseAvailable(targetKey: string) {
     return targetKey === "oop" || sampleAvailability[targetKey] === true;
   }
 
@@ -385,11 +472,42 @@ function App() {
       ? "DeepSeek V4"
       : apiState === "checking"
         ? "检查模型"
-        : "本地演示";
+        : "未配置模型";
 
-  function changeView(nextView: "review" | "exam" | "settings") {
+  function changeView(nextView: AppView) {
     setView(nextView);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function handleCreateCourse(input: NewCourseInput) {
+    const course = createCourse(input);
+    const nextCourses = loadCourses();
+    setCourses(nextCourses);
+    setCourseKey(course.id);
+    setGraph(emptyGraph(course));
+    setSelectedId("");
+    setMaterials([]);
+    saveActiveCourseId(course.id);
+    recordStudyEvent({
+      courseId: course.id,
+      course: course.name,
+      kind: "course",
+      title: "创建课程",
+      detail: "课程已创建，等待添加第一份资料",
+    });
+    setShowCourseDialog(false);
+    setView("materials");
+    setNotice({
+      tone: "success",
+      text: `${course.name}已创建，可以添加资料了。`,
+    });
+  }
+
+  function openCourse(courseId: string, nextView: "review" | "exam") {
+    if (courseId !== courseKey) {
+      void switchCourse(courseId);
+    }
+    setView(nextView);
   }
 
   const handleModelStatusChange = useCallback((configured: boolean) => {
@@ -412,21 +530,15 @@ function App() {
         <nav className="primary-nav" aria-label="主导航">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isAvailable = item.id === "review" || item.id === "exam";
-            const isActive = isAvailable && view === item.id;
+            const isActive = view === item.id;
             return (
               <button
-                key={item.label}
+                key={item.id}
                 type="button"
                 className={`nav-item ${isActive ? "is-active" : ""}`}
                 aria-current={isActive ? "page" : undefined}
-                disabled={!isAvailable}
-                title={isAvailable ? item.label : `${item.label}将在后续版本接入`}
-                onClick={() => {
-                  if (item.id === "review" || item.id === "exam") {
-                    changeView(item.id);
-                  }
-                }}
+                title={item.label}
+                onClick={() => changeView(item.id)}
               >
                 <Icon size={18} strokeWidth={1.9} />
                 <span>{item.label}</span>
@@ -436,33 +548,53 @@ function App() {
         </nav>
 
         <div className="sidebar-section">
-          <div className="section-label">最近课程</div>
-          {courseChoices.map((course) => {
-            const available = isCourseAvailable(course.key);
-            return (
+          <div className="section-label-row">
+            <div className="section-label">我的课程</div>
+            <button
+              type="button"
+              className="sidebar-add-course"
+              aria-label="新建课程"
+              title="新建课程"
+              onClick={() => setShowCourseDialog(true)}
+            >
+              <BookPlus size={15} />
+            </button>
+          </div>
+          <div className="course-list">
+            {courses.map((course) => (
               <button
-                key={course.key}
+                key={course.id}
                 type="button"
                 className={`course-chip ${
-                  course.key === courseKey ? "is-current" : ""
+                  course.id === courseKey ? "is-current" : ""
                 }`}
-                disabled={!available || isGenerating}
-                onClick={() => void switchCourse(course.key)}
+                disabled={isGenerating}
+                onClick={() => void switchCourse(course.id)}
               >
-                <span className={`course-dot ${course.color}`} />
+                <span className={`course-dot ${course.accent}`} />
                 <span>
                   <strong>{course.name}</strong>
                   <small>
-                    {available
-                      ? course.key === courseKey
-                        ? "当前课程"
-                        : "点击加载"
-                      : "样例待接入"}
+                    {course.id === courseKey
+                      ? view === "materials"
+                        ? "正在管理资料"
+                        : "当前课程"
+                      : course.builtIn
+                        ? "内置课程"
+                        : "自建课程"}
                   </small>
                 </span>
               </button>
-            );
-          })}
+            ))}
+          </div>
+          <button
+            type="button"
+            className="new-course-link"
+            onClick={() => setShowCourseDialog(true)}
+          >
+            <BookPlus size={15} />
+            新建课程
+          </button>
         </div>
 
         <div className="sidebar-footer">
@@ -486,15 +618,9 @@ function App() {
         <header className="topbar">
           <div className="breadcrumbs">
             <GraduationCap size={17} />
-            <span>{graph.course}</span>
+            <span>{currentCourse.name}</span>
             <ChevronRight size={14} />
-            <strong>
-              {view === "review"
-                ? "复习导图"
-                : view === "exam"
-                  ? "模拟考试"
-                  : "设置"}
-            </strong>
+            <strong>{viewLabels[view]}</strong>
           </div>
           <div className="topbar-actions">
             <select
@@ -503,26 +629,31 @@ function App() {
               value={courseKey}
               disabled={isGenerating}
               onChange={(event) =>
-                void switchCourse(event.target.value as CourseKey)
+                void switchCourse(event.target.value)
               }
             >
-              {courseChoices.map((course) => (
-                <option
-                  key={course.key}
-                  value={course.key}
-                  disabled={!isCourseAvailable(course.key)}
-                >
+              {courses.map((course) => (
+                <option key={course.id} value={course.id}>
                   {course.name}
                 </option>
               ))}
             </select>
             <button
               type="button"
+              className="icon-button new-course-topbar"
+              aria-label="新建课程"
+              title="新建课程"
+              onClick={() => setShowCourseDialog(true)}
+            >
+              <BookPlus size={17} />
+            </button>
+            <button
+              type="button"
               className={`model-pill ${apiState === "local" ? "is-local" : ""}`}
               title={
                 apiState === "connected"
                   ? "DeepSeek V4 文本与视觉模型已配置"
-                  : "当前使用本地演示数据"
+                  : "尚未配置模型，点击查看 DeepSeek 配置说明"
               }
               onClick={() => changeView("settings")}
             >
@@ -559,7 +690,32 @@ function App() {
         </header>
 
         <div className="content">
+          {notice && view !== "review" ? (
+            <div
+              className={`generation-notice global-notice ${notice.tone}`}
+              role={notice.tone === "error" ? "alert" : "status"}
+            >
+              {notice.tone === "success" ? (
+                <CheckCircle2 size={17} />
+              ) : notice.tone === "info" ? (
+                <LoaderCircle className="spin" size={17} />
+              ) : (
+                <AlertTriangle size={17} />
+              )}
+              <span>{notice.text}</span>
+              <button
+                type="button"
+                className="notice-close"
+                aria-label="关闭提示"
+                onClick={() => setNotice(null)}
+              >
+                <X size={15} />
+              </button>
+            </div>
+          ) : null}
           <div hidden={view !== "review"}>
+          {graph.nodes.length ? (
+          <>
           <section className="course-heading">
             <div className="heading-copy">
               <div className="eyebrow">
@@ -764,6 +920,70 @@ function App() {
               ))}
             </div>
           </section>
+          </>
+          ) : (
+            <section className="workspace-empty-state review-empty-state">
+              <Network size={28} />
+              <h2>这门课还没有知识导图</h2>
+              <p>
+                先添加课件、复习资料或真题图片。生成成功后，这里会出现思维导图、
+                重点清单和资料页码。
+              </p>
+              <div className="empty-state-actions">
+                <button
+                  type="button"
+                  className="button primary-button"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload size={17} />
+                  添加课程资料
+                </button>
+                <button
+                  type="button"
+                  className="button secondary-button"
+                  onClick={() => changeView("materials")}
+                >
+                  <FolderKanban size={17} />
+                  打开课程资料
+                </button>
+              </div>
+            </section>
+          )}
+          </div>
+          <div hidden={view !== "materials"}>
+            <CourseMaterialsWorkspace
+              course={currentCourse}
+              graph={graph}
+              materials={materials}
+              isGenerating={isGenerating}
+              onUpload={handleFileSelection}
+              onRemoveMaterial={(materialId) =>
+                removeMaterial(courseKey, materialId)
+              }
+              onOpenReview={() => changeView("review")}
+              onOpenExam={() => changeView("exam")}
+            />
+          </div>
+          <div hidden={view !== "history"}>
+            <HistoryWorkspace
+              courses={courses}
+              currentCourseId={courseKey}
+              onOpenCourse={openCourse}
+            />
+          </div>
+          <div hidden={view !== "wrong"}>
+            <WrongBookWorkspace
+              courses={courses}
+              currentCourseId={courseKey}
+              onOpenCourse={openCourse}
+            />
+          </div>
+          <div hidden={view !== "favorites"}>
+            <FavoritesWorkspace
+              courses={courses}
+              currentCourseId={courseKey}
+              onOpenCourse={openCourse}
+            />
           </div>
           <div hidden={view !== "exam"}>
             <ExamWorkspace graph={graph} />
@@ -812,6 +1032,12 @@ function App() {
             </p>
           </section>
         </div>
+      ) : null}
+      {showCourseDialog ? (
+        <CourseDialog
+          onClose={() => setShowCourseDialog(false)}
+          onCreate={handleCreateCourse}
+        />
       ) : null}
     </div>
   );
