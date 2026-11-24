@@ -1,0 +1,32 @@
+# Local course materials and generated data
+local-samples/*
+!local-samples/README.md
+data/
+local-data/
+*.sqlite
+*.sqlite3
+
+# Model credentials
+.env
+.env.*
+!.env.example
+
+# Dependencies and builds
+node_modules/
+.venv/
+dist/
+build/
+coverage/
+.vite/
+__pycache__/
+*.pyc
+screenshots/
+
+# Editor and OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

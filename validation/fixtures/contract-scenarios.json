@@ -1,0 +1,811 @@
+{
+  "schemaVersion": "0.1",
+  "scenarios": [
+    {
+      "course": {
+        "id": "course-linear-algebra",
+        "name": "线性代数",
+        "subjectCategory": "math",
+        "contentKinds": ["formula", "proof"]
+      },
+      "sources": [
+        {
+          "id": "doc-la-slides",
+          "kind": "courseware",
+          "blocks": [
+            {
+              "id": "blk-la-matrix",
+              "page": 3,
+              "blockType": "formula",
+              "text": "矩阵乘法要求左矩阵列数等于右矩阵行数。"
+            },
+            {
+              "id": "blk-la-eigen",
+              "page": 18,
+              "blockType": "text",
+              "text": "特征值满足 det(A - lambda I) = 0。"
+            },
+            {
+              "id": "blk-la-proof",
+              "page": 22,
+              "blockType": "text",
+              "text": "证明线性无关时，需要令线性组合等于零向量。"
+            }
+          ]
+        }
+      ],
+      "graph": {
+        "id": "graph-la",
+        "courseId": "course-linear-algebra",
+        "nodes": [
+          {
+            "id": "kn-la-1",
+            "nodeType": "formula",
+            "title": "矩阵乘法成立条件",
+            "contentMarkdown": "若 $A$ 为 $m \\times n$ 矩阵，$B$ 为 $n \\times p$ 矩阵，则 $AB$ 为 $m \\times p$ 矩阵。",
+            "importance": "core",
+            "verificationStatus": "sourced",
+            "evidence": [
+              {
+                "documentId": "doc-la-slides",
+                "blockId": "blk-la-matrix",
+                "locator": {
+                  "page": 3
+                }
+              }
+            ]
+          },
+          {
+            "id": "kn-la-2",
+            "nodeType": "formula",
+            "title": "特征方程",
+            "contentMarkdown": "$\\det(A-\\lambda I)=0$",
+            "importance": "core",
+            "verificationStatus": "sourced",
+            "evidence": [
+              {
+                "documentId": "doc-la-slides",
+                "blockId": "blk-la-eigen",
+                "locator": {
+                  "page": 18
+                }
+              }
+            ]
+          },
+          {
+            "id": "kn-la-3",
+            "nodeType": "method",
+            "title": "线性无关的证明方法",
+            "contentMarkdown": "设线性组合为零，再利用已知条件推出所有系数为零。",
+            "importance": "important",
+            "verificationStatus": "sourced",
+            "evidence": [
+              {
+                "documentId": "doc-la-slides",
+                "blockId": "blk-la-proof",
+                "locator": {
+                  "page": 22
+                }
+              }
+            ]
+          },
+          {
+            "id": "kn-la-4",
+            "nodeType": "pitfall",
+            "title": "矩阵乘法不满足交换律",
+            "contentMarkdown": "AI 补充：一般 $AB \\neq BA$，计算时不能交换顺序。",
+            "importance": "important",
+            "verificationStatus": "supplemented",
+            "evidence": []
+          }
+        ]
+      },
+      "blueprint": {
+        "id": "blueprint-la",
+        "courseId": "course-linear-algebra",
+        "title": "线性代数模拟期末试卷",
+        "durationMinutes": 90,
+        "totalScore": 100,
+        "difficultyRatio": {
+          "basic": 60,
+          "integrated": 30,
+          "advanced": 10
+        },
+        "sections": [
+          {
+            "id": "sec-la-choice",
+            "title": "单项选择题",
+            "questionType": "single_choice",
+            "questionCount": 2,
+            "pointsPerQuestion": 10,
+            "sectionScore": 20
+          },
+          {
+            "id": "sec-la-calculation",
+            "title": "计算题",
+            "questionType": "calculation",
+            "questionCount": 1,
+            "pointsPerQuestion": 50,
+            "sectionScore": 50
+          },
+          {
+            "id": "sec-la-proof",
+            "title": "证明题",
+            "questionType": "proof",
+            "questionCount": 1,
+            "pointsPerQuestion": 30,
+            "sectionScore": 30
+          }
+        ]
+      },
+      "paper": {
+        "id": "paper-la-v1",
+        "courseId": "course-linear-algebra",
+        "blueprintId": "blueprint-la",
+        "version": 1,
+        "questions": [
+          {
+            "id": "q-la-1",
+            "sectionId": "sec-la-choice",
+            "questionType": "single_choice",
+            "points": 10,
+            "knowledgeNodeIds": ["kn-la-1"],
+            "evidence": [
+              {
+                "documentId": "doc-la-slides",
+                "blockId": "blk-la-matrix",
+                "locator": {
+                  "page": 3
+                }
+              }
+            ],
+            "stemMarkdown": "若 $A$ 为 $2\\times3$ 矩阵，$B$ 为 $3\\times4$ 矩阵，则 $AB$ 的维度是？",
+            "options": [
+              "A. $2\\times4$",
+              "B. $3\\times3$",
+              "C. $4\\times2$",
+              "D. 无法相乘"
+            ],
+            "answer": "A",
+            "explanationMarkdown": "矩阵乘法结果的尺寸为外维，即 $2\\times4$。",
+            "gradingMode": "auto"
+          },
+          {
+            "id": "q-la-2",
+            "sectionId": "sec-la-choice",
+            "questionType": "single_choice",
+            "points": 10,
+            "knowledgeNodeIds": ["kn-la-4"],
+            "evidence": [
+              {
+                "documentId": "doc-la-slides",
+                "blockId": "blk-la-matrix",
+                "locator": {
+                  "page": 3
+                }
+              }
+            ],
+            "stemMarkdown": "关于矩阵乘法，下列说法正确的是？",
+            "options": [
+              "A. 总是满足交换律",
+              "B. 满足结合律但不一定满足交换律",
+              "C. 只有方阵可以相乘",
+              "D. 结果一定为方阵"
+            ],
+            "answer": "B",
+            "explanationMarkdown": "矩阵乘法满足结合律，但一般不满足交换律。",
+            "gradingMode": "auto"
+          },
+          {
+            "id": "q-la-3",
+            "sectionId": "sec-la-calculation",
+            "questionType": "calculation",
+            "points": 50,
+            "knowledgeNodeIds": ["kn-la-2"],
+            "evidence": [
+              {
+                "documentId": "doc-la-slides",
+                "blockId": "blk-la-eigen",
+                "locator": {
+                  "page": 18
+                }
+              }
+            ],
+            "stemMarkdown": "已知二阶矩阵 $A$ 的特征多项式，求其特征值和特征向量。",
+            "options": [],
+            "answer": "按特征方程求出特征值，再分别解齐次线性方程组得到特征向量。",
+            "explanationMarkdown": "先解特征方程，再将每个特征值代回 $A-\\lambda I$。",
+            "rubric": [
+              "正确写出特征方程",
+              "正确求出全部特征值",
+              "正确求解特征向量",
+              "说明特征向量的非零条件"
+            ],
+            "gradingMode": "rubricSelf"
+          },
+          {
+            "id": "q-la-4",
+            "sectionId": "sec-la-proof",
+            "questionType": "proof",
+            "points": 30,
+            "knowledgeNodeIds": ["kn-la-3"],
+            "evidence": [
+              {
+                "documentId": "doc-la-slides",
+                "blockId": "blk-la-proof",
+                "locator": {
+                  "page": 22
+                }
+              }
+            ],
+            "stemMarkdown": "证明给定向量组线性无关。",
+            "options": [],
+            "answer": "设线性组合为零，根据条件推出全部系数为零。",
+            "explanationMarkdown": "证明线性无关应从定义出发，不能只计算行列式而忽略适用前提。",
+            "rubric": [
+              "正确建立线性组合",
+              "使用已知条件",
+              "推出全部系数为零",
+              "结论完整"
+            ],
+            "gradingMode": "rubricSelf"
+          }
+        ]
+      }
+    },
+    {
+      "course": {
+        "id": "course-physics",
+        "name": "大学物理",
+        "subjectCategory": "physics",
+        "contentKinds": ["formula", "figure", "experiment"]
+      },
+      "sources": [
+        {
+          "id": "doc-phy-slides",
+          "kind": "courseware",
+          "blocks": [
+            {
+              "id": "blk-phy-figure",
+              "page": 6,
+              "blockType": "image",
+              "text": "受力分析图：物块受重力、支持力和摩擦力。"
+            },
+            {
+              "id": "blk-phy-unit",
+              "page": 9,
+              "blockType": "formula",
+              "text": "牛顿第二定律 F = ma，力单位为 N。"
+            },
+            {
+              "id": "blk-phy-lab",
+              "page": 15,
+              "blockType": "text",
+              "text": "实验数据处理需要记录不确定度，并说明误差来源。"
+            }
+          ]
+        }
+      ],
+      "graph": {
+        "id": "graph-physics",
+        "courseId": "course-physics",
+        "nodes": [
+          {
+            "id": "kn-phy-1",
+            "nodeType": "formula",
+            "title": "牛顿第二定律",
+            "contentMarkdown": "$\\sum \\vec{F}=m\\vec{a}$，适用于惯性参考系。",
+            "importance": "core",
+            "verificationStatus": "sourced",
+            "evidence": [
+              {
+                "documentId": "doc-phy-slides",
+                "blockId": "blk-phy-unit",
+                "locator": {
+                  "page": 9
+                }
+              }
+            ]
+          },
+          {
+            "id": "kn-phy-2",
+            "nodeType": "figure",
+            "title": "受力分析",
+            "contentMarkdown": "先确定研究对象，再按重力、弹力、摩擦力顺序分析。",
+            "importance": "important",
+            "verificationStatus": "sourced",
+            "evidence": [
+              {
+                "documentId": "doc-phy-slides",
+                "blockId": "blk-phy-figure",
+                "locator": {
+                  "page": 6
+                }
+              }
+            ]
+          },
+          {
+            "id": "kn-phy-3",
+            "nodeType": "experiment",
+            "title": "误差分析",
+            "contentMarkdown": "区分系统误差和随机误差，保留有效数字并说明误差来源。",
+            "importance": "important",
+            "verificationStatus": "sourced",
+            "evidence": [
+              {
+                "documentId": "doc-phy-slides",
+                "blockId": "blk-phy-lab",
+                "locator": {
+                  "page": 15
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "blueprint": {
+        "id": "blueprint-physics",
+        "courseId": "course-physics",
+        "title": "大学物理模拟期末试卷",
+        "durationMinutes": 90,
+        "totalScore": 100,
+        "difficultyRatio": {
+          "basic": 60,
+          "integrated": 30,
+          "advanced": 10
+        },
+        "sections": [
+          {
+            "id": "sec-phy-choice",
+            "title": "单项选择题",
+            "questionType": "single_choice",
+            "questionCount": 2,
+            "pointsPerQuestion": 10,
+            "sectionScore": 20
+          },
+          {
+            "id": "sec-phy-calculation",
+            "title": "计算题",
+            "questionType": "calculation",
+            "questionCount": 2,
+            "pointsPerQuestion": 25,
+            "sectionScore": 50
+          },
+          {
+            "id": "sec-phy-experiment",
+            "title": "实验分析题",
+            "questionType": "experiment",
+            "questionCount": 1,
+            "pointsPerQuestion": 30,
+            "sectionScore": 30
+          }
+        ]
+      },
+      "paper": {
+        "id": "paper-physics-v1",
+        "courseId": "course-physics",
+        "blueprintId": "blueprint-physics",
+        "version": 1,
+        "questions": [
+          {
+            "id": "q-phy-1",
+            "sectionId": "sec-phy-choice",
+            "questionType": "single_choice",
+            "points": 10,
+            "knowledgeNodeIds": ["kn-phy-1"],
+            "evidence": [
+              {
+                "documentId": "doc-phy-slides",
+                "blockId": "blk-phy-unit",
+                "locator": {
+                  "page": 9
+                }
+              }
+            ],
+            "stemMarkdown": "牛顿第二定律的适用条件之一是？",
+            "options": [
+              "A. 任意参考系",
+              "B. 惯性参考系",
+              "C. 仅圆周运动",
+              "D. 仅恒力"
+            ],
+            "answer": "B",
+            "explanationMarkdown": "$\\vec{F}=m\\vec{a}$ 的常见形式适用于惯性参考系。",
+            "gradingMode": "auto"
+          },
+          {
+            "id": "q-phy-2",
+            "sectionId": "sec-phy-choice",
+            "questionType": "single_choice",
+            "points": 10,
+            "knowledgeNodeIds": ["kn-phy-3"],
+            "evidence": [
+              {
+                "documentId": "doc-phy-slides",
+                "blockId": "blk-phy-lab",
+                "locator": {
+                  "page": 15
+                }
+              }
+            ],
+            "stemMarkdown": "下列哪项最符合随机误差的特点？",
+            "options": [
+              "A. 可以通过改进仪器完全消除",
+              "B. 多次测量结果可能偏大也可能偏小",
+              "C. 每次误差方向完全相同",
+              "D. 与测量次数无关"
+            ],
+            "answer": "B",
+            "explanationMarkdown": "随机误差具有随机性，可通过多次测量和统计处理减小。",
+            "gradingMode": "auto"
+          },
+          {
+            "id": "q-phy-3",
+            "sectionId": "sec-phy-calculation",
+            "questionType": "calculation",
+            "points": 25,
+            "knowledgeNodeIds": ["kn-phy-1", "kn-phy-2"],
+            "evidence": [
+              {
+                "documentId": "doc-phy-slides",
+                "blockId": "blk-phy-figure",
+                "locator": {
+                  "page": 6
+                }
+              },
+              {
+                "documentId": "doc-phy-slides",
+                "blockId": "blk-phy-unit",
+                "locator": {
+                  "page": 9
+                }
+              }
+            ],
+            "stemMarkdown": "根据受力图求物块加速度，并检查单位。",
+            "options": [],
+            "answer": "列出牛顿第二定律方程，求合力后计算加速度。",
+            "explanationMarkdown": "先完成受力分析，再规定正方向并代入计算。",
+            "rubric": [
+              "正确画出或说明受力",
+              "正确建立方程",
+              "计算过程完整",
+              "结果单位正确"
+            ],
+            "gradingMode": "rubricSelf"
+          },
+          {
+            "id": "q-phy-4",
+            "sectionId": "sec-phy-calculation",
+            "questionType": "calculation",
+            "points": 25,
+            "knowledgeNodeIds": ["kn-phy-2"],
+            "evidence": [
+              {
+                "documentId": "doc-phy-slides",
+                "blockId": "blk-phy-figure",
+                "locator": {
+                  "page": 6
+                }
+              }
+            ],
+            "stemMarkdown": "分析斜面上物块的受力和运动状态。",
+            "options": [],
+            "answer": "分解重力，判断摩擦力和运动趋势后建立方程。",
+            "explanationMarkdown": "需要根据静摩擦或动摩擦条件分别讨论。",
+            "rubric": [
+              "受力分析完整",
+              "坐标系选择合理",
+              "摩擦力判断正确",
+              "结论与条件一致"
+            ],
+            "gradingMode": "rubricSelf"
+          },
+          {
+            "id": "q-phy-5",
+            "sectionId": "sec-phy-experiment",
+            "questionType": "experiment",
+            "points": 30,
+            "knowledgeNodeIds": ["kn-phy-3"],
+            "evidence": [
+              {
+                "documentId": "doc-phy-slides",
+                "blockId": "blk-phy-lab",
+                "locator": {
+                  "page": 15
+                }
+              }
+            ],
+            "stemMarkdown": "某实验的测量值存在明显波动，请分析可能误差来源并给出处理建议。",
+            "options": [],
+            "answer": "区分系统误差与随机误差，说明减小随机误差的方法和系统误差排查方式。",
+            "explanationMarkdown": "答案需要结合实验过程、测量次数和仪器条件。",
+            "rubric": [
+              "区分误差类型",
+              "给出至少两个误差来源",
+              "提出对应处理方式",
+              "说明有效数字或不确定度"
+            ],
+            "gradingMode": "rubricSelf"
+          }
+        ]
+      }
+    },
+    {
+      "course": {
+        "id": "course-oop",
+        "name": "面向对象程序设计",
+        "subjectCategory": "computerScience",
+        "language": "C++",
+        "framework": "MFC",
+        "contentKinds": ["code", "design"]
+      },
+      "sources": [
+        {
+          "id": "doc-oop-slides",
+          "kind": "courseware",
+          "blocks": [
+            {
+              "id": "blk-oop-poly",
+              "page": 8,
+              "blockType": "code",
+              "text": "void CadderDlg::OnBnClickedButton1()\\n{\\n    UpdateData(TRUE);\\n    m_Sum = m_Data1 + m_Data2;\\n    UpdateData(FALSE);\\n}"
+            },
+            {
+              "id": "blk-oop-encap",
+              "page": 11,
+              "blockType": "text",
+              "text": "封装通过限制外部对内部状态的直接访问来维护对象一致性。"
+            },
+            {
+              "id": "blk-oop-design",
+              "page": 20,
+              "blockType": "text",
+              "text": "设计类时应先识别职责，再决定继承与组合关系。"
+            }
+          ]
+        }
+      ],
+      "graph": {
+        "id": "graph-oop",
+        "courseId": "course-oop",
+        "nodes": [
+          {
+            "id": "kn-oop-1",
+            "nodeType": "code",
+            "title": "MFC 消息处理与数据同步",
+            "contentMarkdown": "`UpdateData(TRUE)` 从控件读取数据到成员变量，`UpdateData(FALSE)` 将成员变量写回控件。\n\n```cpp\nvoid CadderDlg::OnBnClickedButton1()\n{\n    UpdateData(TRUE);\n    m_Sum = m_Data1 + m_Data2;\n    UpdateData(FALSE);\n}\n```",
+            "importance": "core",
+            "verificationStatus": "sourced",
+            "evidence": [
+              {
+                "documentId": "doc-oop-slides",
+                "blockId": "blk-oop-poly",
+                "locator": {
+                  "page": 8
+                }
+              }
+            ]
+          },
+          {
+            "id": "kn-oop-2",
+            "nodeType": "definition",
+            "title": "封装",
+            "contentMarkdown": "隐藏内部实现细节，通过公开接口维护对象的一致性。",
+            "importance": "core",
+            "verificationStatus": "sourced",
+            "evidence": [
+              {
+                "documentId": "doc-oop-slides",
+                "blockId": "blk-oop-encap",
+                "locator": {
+                  "page": 11
+                }
+              }
+            ]
+          },
+          {
+            "id": "kn-oop-3",
+            "nodeType": "method",
+            "title": "对话框组件与定时器职责",
+            "contentMarkdown": "对话框类负责控件绑定、消息响应和定时器生命周期；具体组件负责显示和交互。",
+            "importance": "important",
+            "verificationStatus": "sourced",
+            "evidence": [
+              {
+                "documentId": "doc-oop-slides",
+                "blockId": "blk-oop-design",
+                "locator": {
+                  "page": 20
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "blueprint": {
+        "id": "blueprint-oop",
+        "courseId": "course-oop",
+        "title": "面向对象程序设计模拟期末试卷",
+        "durationMinutes": 90,
+        "totalScore": 100,
+        "difficultyRatio": {
+          "basic": 60,
+          "integrated": 30,
+          "advanced": 10
+        },
+        "sections": [
+          {
+            "id": "sec-oop-choice",
+            "title": "单项选择题",
+            "questionType": "single_choice",
+            "questionCount": 2,
+            "pointsPerQuestion": 10,
+            "sectionScore": 20
+          },
+          {
+            "id": "sec-oop-code",
+            "title": "代码阅读题",
+            "questionType": "code_reading",
+            "questionCount": 2,
+            "pointsPerQuestion": 20,
+            "sectionScore": 40
+          },
+          {
+            "id": "sec-oop-design",
+            "title": "程序设计题",
+            "questionType": "code_design",
+            "questionCount": 1,
+            "pointsPerQuestion": 40,
+            "sectionScore": 40
+          }
+        ]
+      },
+      "paper": {
+        "id": "paper-oop-v1",
+        "courseId": "course-oop",
+        "blueprintId": "blueprint-oop",
+        "version": 1,
+        "questions": [
+          {
+            "id": "q-oop-1",
+            "sectionId": "sec-oop-choice",
+            "questionType": "single_choice",
+            "points": 10,
+            "knowledgeNodeIds": ["kn-oop-1"],
+            "evidence": [
+              {
+                "documentId": "doc-oop-slides",
+                "blockId": "blk-oop-poly",
+                "locator": {
+                  "page": 8
+                }
+              }
+            ],
+            "stemMarkdown": "以下 C++ 代码输出最可能是什么？\n\n```cpp\nclass A {\npublic:\n    virtual int f() { return 1; }\n};\nclass B : public A {\npublic:\n    int f() override { return 2; }\n};\nA* a = new B();\nstd::cout << a->f();\n```",
+            "options": [
+              "A. 1",
+              "B. 2",
+              "C. 编译错误",
+              "D. 未定义行为"
+            ],
+            "answer": "B",
+            "explanationMarkdown": "`A* a = new B()` 后通过虚函数调用实际执行 `B::f()`。",
+            "gradingMode": "auto"
+          },
+          {
+            "id": "q-oop-2",
+            "sectionId": "sec-oop-choice",
+            "questionType": "single_choice",
+            "points": 10,
+            "knowledgeNodeIds": ["kn-oop-2"],
+            "evidence": [
+              {
+                "documentId": "doc-oop-slides",
+                "blockId": "blk-oop-encap",
+                "locator": {
+                  "page": 11
+                }
+              }
+            ],
+            "stemMarkdown": "封装的主要目的是什么？",
+            "options": [
+              "A. 增加类的数量",
+              "B. 隐藏实现并维护对象一致性",
+              "C. 禁止所有继承",
+              "D. 减少程序运行时间"
+            ],
+            "answer": "B",
+            "explanationMarkdown": "封装通过受控接口保护内部状态和实现细节。",
+            "gradingMode": "auto"
+          },
+          {
+            "id": "q-oop-3",
+            "sectionId": "sec-oop-code",
+            "questionType": "code_reading",
+            "points": 20,
+            "knowledgeNodeIds": ["kn-oop-1"],
+            "evidence": [
+              {
+                "documentId": "doc-oop-slides",
+                "blockId": "blk-oop-poly",
+                "locator": {
+                  "page": 8
+                }
+              }
+            ],
+            "stemMarkdown": "分析以下 C++ 代码中的动态绑定，并写出运行结果。\n\n```cpp\nclass A {\npublic:\n    virtual int f() { return 1; }\n};\n\nclass B : public A {\npublic:\n    int f() override { return 2; }\n};\n\nA* a = new B();\nstd::cout << a->f();\n```",
+            "options": [],
+            "answer": "2",
+            "explanationMarkdown": "基类指针指向派生类对象，虚函数调用由实际对象类型决定。",
+            "rubric": [
+              "识别两个对象的实际类型",
+              "说明方法查找过程",
+              "写出完整输出"
+            ],
+            "gradingMode": "rubricSelf"
+          },
+          {
+            "id": "q-oop-4",
+            "sectionId": "sec-oop-code",
+            "questionType": "code_reading",
+            "points": 20,
+            "knowledgeNodeIds": ["kn-oop-2"],
+            "evidence": [
+              {
+                "documentId": "doc-oop-slides",
+                "blockId": "blk-oop-encap",
+                "locator": {
+                  "page": 11
+                }
+              }
+            ],
+            "stemMarkdown": "在 MFC 对话框中直接让外部代码修改控件绑定变量可能造成什么问题？应如何避免？",
+            "options": [],
+            "answer": "可能绕过数据校验并造成控件与成员变量状态不一致。应通过对话框类方法集中校验和同步。",
+            "explanationMarkdown": "答案应指出状态一致性、封装和 `UpdateData` 调用时机方面的问题。",
+            "rubric": [
+              "指出直接暴露行为",
+              "说明状态一致性风险",
+              "提出受控接口方案"
+            ],
+            "gradingMode": "rubricSelf"
+          },
+          {
+            "id": "q-oop-5",
+            "sectionId": "sec-oop-design",
+            "questionType": "code_design",
+            "points": 40,
+            "knowledgeNodeIds": ["kn-oop-2", "kn-oop-3"],
+            "evidence": [
+              {
+                "documentId": "doc-oop-slides",
+                "blockId": "blk-oop-encap",
+                "locator": {
+                  "page": 11
+                }
+              },
+              {
+                "documentId": "doc-oop-slides",
+                "blockId": "blk-oop-design",
+                "locator": {
+                  "page": 20
+                }
+              }
+            ],
+            "stemMarkdown": "为一个带启动按钮、状态文本和每秒刷新能力的 MFC 对话框设计核心类，并说明消息映射与定时器生命周期。",
+            "options": [],
+            "answer": "对话框类负责按钮消息、状态文本绑定和定时器启停，组件对象负责显示与交互。",
+            "explanationMarkdown": "重点考察 MFC 消息响应、控件绑定和资源生命周期。",
+            "rubric": [
+              "核心类职责清晰",
+              "说明按钮消息处理函数",
+              "说明定时器启停与销毁",
+              "说明控件与成员变量同步"
+            ],
+            "gradingMode": "rubricSelf"
+          }
+        ]
+      }
+    }
+  ]
+}

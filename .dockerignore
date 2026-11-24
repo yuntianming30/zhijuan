@@ -1,0 +1,11 @@
+.git
+.github
+node_modules
+dist
+local-samples
+local-data
+screenshots
+.venv
+__pycache__
+*.pyc
+*.log

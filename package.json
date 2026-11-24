@@ -1,0 +1,61 @@
+{
+  "name": "zhijuan",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Local-first AI review workbench for STEM course materials.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yuntianming30/zhijuan.git"
+  },
+  "homepage": "https://github.com/yuntianming30/zhijuan#readme",
+  "bugs": {
+    "url": "https://github.com/yuntianming30/zhijuan/issues"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "dev:api": "py -m uvicorn backend.server:app --host 127.0.0.1 --port 8010",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "qa:visual": "node scripts/visual-check.mjs",
+    "qa:live": "node scripts/live-generation-check.mjs",
+    "qa:upload": "node scripts/upload-check.mjs",
+    "qa:generated": "node scripts/generated-visual-check.mjs",
+    "qa:exam": "node scripts/exam-check.mjs",
+    "qa:exam-layout": "node scripts/exam-layout-check.mjs",
+    "qa:exam-responsive": "node scripts/exam-responsive-check.mjs",
+    "qa:exam-profile": "node scripts/exam-profile-check.mjs",
+    "qa:math": "node scripts/math-render-check.mjs",
+    "qa:linear-algebra": "node scripts/linear-algebra-check.mjs",
+    "qa:linear-exam": "node scripts/generate-linear-exam.mjs",
+    "qa:settings": "node scripts/settings-check.mjs"
+  },
+  "dependencies": {
+    "@markmap/parse": "^1.1.1",
+    "@markmap/render": "^1.1.1",
+    "@markmap/view": "^1.1.1",
+    "katex": "^0.19.1",
+    "lucide-react": "^0.468.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-markdown": "^10.1.0",
+    "rehype-katex": "^7.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "playwright-core": "^1.65.1",
+    "typescript": "^5.9.0",
+    "vite": "^7.1.0"
+  },
+  "overrides": {
+    "katex": "$katex"
+  }
+}
